@@ -7,18 +7,18 @@ import (
 )
 
 // Format parses the input HTML string, formats it and returns the result.
-func Format(s string) string {
-	return parse(strings.NewReader(s)).html()
+func Format(s string, allowSpaces bool) string {
+	return parse(strings.NewReader(s), allowSpaces).html()
 }
 
 // FormatBytes parses input HTML as bytes, formats it and returns the result.
-func FormatBytes(b []byte) []byte {
-	return parse(bytes.NewReader(b)).bytes()
+func FormatBytes(b []byte, allowSpaces bool) []byte {
+	return parse(bytes.NewReader(b), allowSpaces).bytes()
 }
 
 // Format parses the input HTML string, formats it and returns the result with line no.
-func FormatWithLineNo(s string) string {
-	return AddLineNo(Format(s))
+func FormatWithLineNo(s string, allowSpaces bool) string {
+	return AddLineNo(Format(s, allowSpaces))
 }
 
 func AddLineNo(s string) string {

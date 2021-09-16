@@ -22,7 +22,7 @@ func (wr *Writer) SetLastElement(lastElement string) *Writer {
 func (wr *Writer) Write(p []byte) (n int, err error) {
 	n, _ = wr.bf.Write(p) // (*bytes.Buffer).Write never produces an error
 	if bytes.HasSuffix(p, []byte(wr.lastElement)) {
-		_, err = wr.writer.Write([]byte(Format(wr.bf.String()) + "\n"))
+		_, err = wr.writer.Write([]byte(Format(wr.bf.String(), false) + "\n"))
 	}
 	return n, err
 }
