@@ -1,7 +1,7 @@
 package gohtml
 
 import (
-	"golang.org/x/net/html"
+	"github.com/darmiel/net/html"
 	"io"
 	"strings"
 )
