@@ -7,11 +7,11 @@ import (
 )
 
 // parse parses a stirng and converts it into an html.
-func parse(r io.Reader, spaces bool) *htmlDocument {
+func parse(r io.Reader, preserveEmptyLines bool) *htmlDocument {
 	htmlDoc := &htmlDocument{}
 	tokenizer := html.NewTokenizer(r)
 	for {
-		if errorToken, _, _ := parseToken(tokenizer, htmlDoc, nil, spaces); errorToken {
+		if errorToken, _, _ := parseToken(tokenizer, htmlDoc, nil, preserveEmptyLines); errorToken {
 			break
 		}
 	}
@@ -27,30 +27,34 @@ var IsPreformatted = func(token html.Token) bool {
 	return token.Data == "pre" || token.Data == "textarea"
 }
 
-func parseToken(tokenizer *html.Tokenizer, htmlDoc *htmlDocument, parent *tagElement, allowSpace bool) (bool, bool, string) {
+func parseToken(tokenizer *html.Tokenizer, htmlDoc *htmlDocument, parent *tagElement, preserveEmptyLines bool) (bool, bool, string) {
 	tokenType := tokenizer.Next()
 	switch tokenType {
 	case html.ErrorToken:
 		return true, false, ""
 	case html.TextToken:
 		text := string(tokenizer.Raw())
-		if !allowSpace && (strings.TrimSpace(text) == "" && (parent == nil || !parent.isRaw)) {
-			break
+
+		if !preserveEmptyLines || strings.Count(text, "\n") <= 1 {
+			if strings.TrimSpace(text) == "" && (parent == nil || !parent.isRaw) {
+				break
+			}
 		}
+
 		textElement := &textElement{text: text, parent: parent}
 		appendElement(htmlDoc, parent, textElement)
 	case html.StartTagToken:
 		raw := string(tokenizer.Raw())
 		token := tokenizer.Token()
 		tagElement := &tagElement{
-			tagName:     string(token.Data),
+			tagName:     token.Data,
 			startTagRaw: raw,
 			isRaw:       IsPreformatted(token) || (parent != nil && parent.isRaw),
 			parent:      parent,
 		}
 		appendElement(htmlDoc, parent, tagElement)
 		for {
-			errorToken, parentEnded, unsetEndTag := parseToken(tokenizer, htmlDoc, tagElement, allowSpace)
+			errorToken, parentEnded, unsetEndTag := parseToken(tokenizer, htmlDoc, tagElement, preserveEmptyLines)
 			if errorToken {
 				return true, false, ""
 			}
